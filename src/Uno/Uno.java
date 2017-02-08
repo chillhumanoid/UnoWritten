@@ -1,5 +1,7 @@
 package Uno;
 
+import java.util.Random;
+import java.io.IOException;
 import static java.lang.Thread.sleep;
 import java.util.InputMismatchException;
 import java.util.Scanner;
@@ -14,34 +16,29 @@ public class Uno {
     private static Scanner si = new Scanner(System.in);
     private static deal discardPile = new deal();
     private static boolean reverse = false;
+    private static boolean fullGame = false;
+    private static int numComp = 0;
+    private static int play1Score = 0;
+    private static int comp1Score = 0;
+    private static int comp2Score = 0;
+    private static int comp3Score = 0;
+    private static String play1Name = null;
+    private static String comp1Name = null;
+    private static String comp2Name = null;
+    private static String comp3Name = null;
+    private static String[] compNames = new String[]{"Billy", "Charles","Jillian","Frank","Michelle","Angela","Rachel","Phil"};
 
-    public static void main(String[] args) throws InterruptedException {
+    public static void main(String[] args) throws InterruptedException, IOException {
+        menu();
+    }
+    private static void play() throws InterruptedException, IOException{
+        new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
         deck.shuffleDeck();
         int currentPlayer = 1;
-        boolean compNumGot;
         boolean skip = false;
-        boolean gameEnded = false;
         boolean draw2 = false;
         boolean draw4 = false;
         boolean uno = false;
-        int numComp = 0;
-        do {
-            try {
-                System.out.print("How many computers do you want to play against?(1-3): ");
-                numComp = si.nextInt();
-                si.nextLine();
-            } catch (InputMismatchException e) {
-                System.out.println("Invalid Input");
-                si.nextLine();
-            }
-            if (numComp <= 3 && numComp >= 1) {
-                compNumGot = true;
-            } else {
-                System.out.println("Please enter a number between 1 and 3");
-                System.out.println();
-                compNumGot = false;
-            }
-        } while (!compNumGot);
         if (numComp == 1) {
             for (int i = 0; i < 7; i++) {
                 play1.addCard(deck);
@@ -91,7 +88,7 @@ public class Uno {
                     int elem = choice - 1;
                     if (choice == 5496) {
                         System.exit(0);
-                    }else if (choice == (play1.getSize() + 1)) {
+                    } else if (choice == (play1.getSize() + 1)) {
                         if (!drawCard) {
                             play1.addCard(deck);
                             drawCard = true;
@@ -101,7 +98,7 @@ public class Uno {
                     } else if (choice == (play1.getSize() + 2)) {
                         if (!unoCalled) {
                             System.out.println();
-                            System.out.println("Player 1 Calls Uno");
+                            System.out.println(play1Name + " Calls Uno");
                             unoCalled = true;
                         } else if (unoCalled || !uno) {
                             System.out.println();
@@ -133,20 +130,27 @@ public class Uno {
                     }
                 } while (cardPlayed == 0);
                 if (play1.getSize() == 1 && !unoCalled) {
-                    System.out.println("Player 1 did not call uno. +2");
+                    System.out.println(play1Name +  " did not call uno. +2");
                     play1.addCard(deck);
                     play1.addCard(deck);
                 }
                 if (play1.getSize() > 1 && unoCalled) {
-                    System.out.println("Player 1 falsely called uno. +2");
+                    System.out.println(play1Name + " falsely called uno. +2");
                     play1.addCard(deck);
                     play1.addCard(deck);
                 }
                 if (play1.getSize() == 0) {
-                    System.out.println();
-                    System.out.println("Player 1 won");
-                    gameEnded = true;
-                    currentPlayer = 0;
+                    if(fullGame){
+                        System.out.println();
+                        System.out.println(play1Name + " won the round");
+                        scoring(1);
+                    }else if(!fullGame) {
+                        System.out.println();
+                        System.out.println(play1Name + " won");
+                        Thread.sleep(2000);
+                        hardReset();
+                        menu();
+                    }
                 }
                 currentPlayer = nextPlayer(currentPlayer, numComp, reverse, skip, draw2, draw4);
                 checkDraw(deck, discardPile);
@@ -155,25 +159,24 @@ public class Uno {
             }
             while (currentPlayer == 2) {
                 int compNumber = 1;
-                currentPlayer = computerPlay(comp1, skip, draw2, draw4, uno, gameEnded, compNumber, currentPlayer, numComp);
+                currentPlayer = computerPlay(comp1, skip, draw2, draw4, uno, compNumber, currentPlayer, numComp);
                 checkDraw(deck, discardPile);
                 break;
             }
             while (currentPlayer == 3) {
                 int compNumber = 2;
-                currentPlayer = computerPlay(comp2, skip, draw2, draw4, uno, gameEnded, compNumber, currentPlayer, numComp);
+                currentPlayer = computerPlay(comp2, skip, draw2, draw4, uno, compNumber, currentPlayer, numComp);
                 checkDraw(deck, discardPile);
                 break;
             }
             while (currentPlayer == 4) {
                 int compNumber = 3;
-                currentPlayer = computerPlay(comp3, skip, draw2, draw4, uno, gameEnded, compNumber, currentPlayer, numComp);
+                currentPlayer = computerPlay(comp3, skip, draw2, draw4, uno, compNumber, currentPlayer, numComp);
                 checkDraw(deck, discardPile);
                 break;
             }
-        } while (!gameEnded);
+        } while (true);
     }
-
     private static void printHandDebug(deal play) {
         int display = 0;
         for (int x = 0; x < play.getSize(); x++) {
@@ -181,7 +184,33 @@ public class Uno {
             System.out.println(display + ". " + play.getCard(x));
         }
     }
-
+    private static void getNames() throws IOException, InterruptedException{
+        Random rn = new Random();
+        int range = 7 - 0 + 1;
+        int name =  0;
+        int temp = 0;
+        int temp2 = 0;
+        int temp3 = 0;
+        System.out.println();
+        System.out.println("Please your player name: ");
+        play1Name = s.nextLine();
+        while(temp == name){
+            temp = rn.nextInt(range);
+        }
+        name = temp;
+        comp1Name = compNames[name];
+        while(temp2 == name || temp2 == temp){
+            temp2 =  rn.nextInt(range);
+        }
+        name = temp2;
+        comp2Name = compNames[name];
+        while(temp3 == name || temp3 == temp || temp3 == temp2){
+            temp3 =  rn.nextInt(range);
+        }
+        name = temp3;
+        comp3Name = compNames[name];
+        play();
+    }
     private static void printHand(deal play1, boolean drawCard, boolean unoCalled) {
         int display = 0;
         for (int x = 0; x < play1.getSize(); x++) {
@@ -252,6 +281,65 @@ public class Uno {
             } while (discardPile.getSize() > 0);
             deck.shuffleDeck();
             discardPile.addCard(deck);
+        }
+    }
+
+    private static void menu() throws IOException, InterruptedException {
+        int choice = 0;
+        new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
+        try {
+            System.out.println("Welcome to Uno v1.1.1.2");
+            System.out.println("1. Play");
+            System.out.println("2. Exit");
+            choice = si.nextInt();
+            si.nextLine();
+        } catch (InputMismatchException e) {
+            System.out.println("Invalid Input");
+            si.nextLine();
+        }
+        if (choice == 1) {
+            new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
+            try {
+                System.out.println("Game Modes");
+                System.out.println("1. Normal(Score based, multiple games)");
+                System.out.println("2. Quick(one game, no scores)");
+                System.out.println("3. Back");
+                choice = si.nextInt();
+                si.nextLine();
+            } catch (InputMismatchException e) {
+                System.out.println("Invalid Input");
+                si.nextLine();
+            }
+            if (choice == 1) {
+                fullGame = true;
+                compNum();
+            } else if (choice == 2) {
+                fullGame = false;
+                compNum();
+            } else if (choice == 3) {
+                menu();
+            } else if (choice == 2) {
+                System.out.println("Goodbye!");
+                System.exit(0);
+            }
+        }
+    }
+    private static void compNum() throws InterruptedException, IOException{
+        String[] args = {};
+        try {
+            System.out.print("How many computers do you want to play against?(1-3): ");
+            numComp = si.nextInt();
+            si.nextLine();
+        } catch (InputMismatchException e) {
+            System.out.println("Invalid Input");
+            si.nextLine();
+        }
+        if (numComp <= 3 && numComp >= 1) {
+            getNames();
+        } else {
+            System.out.println("Please enter a number between 1 and 3");
+            System.out.println();
+            compNum();
         }
     }
 
@@ -427,14 +515,21 @@ public class Uno {
         return new Card(cardNumber, cColor);
     }
 
-    private static int computerPlay(deal comp, boolean skip, boolean draw2, boolean draw4, boolean uno, boolean gameEnded, int compNumber, int currentPlayer, int numComp) throws InterruptedException {
+    private static int computerPlay(deal comp, boolean skip, boolean draw2, boolean draw4, boolean uno, int compNumber, int currentPlayer, int numComp) throws InterruptedException, IOException {
         skip = false;
         draw2 = false;
         draw4 = false;
+        String name = null;
         int choice;
         int cardPlayed = 0;
         boolean drawCard = false;
         boolean unoCalled = false;
+        if(compNumber == 1)
+            name = comp1Name;
+        else if(compNumber == 2)
+            name = comp2Name;
+        else if(compNumber == 3)
+            name = comp3Name;
         do {
             sleep(2000);
             uno = checkUno(comp);
@@ -443,26 +538,26 @@ public class Uno {
             int elem = choice - 1;
             if (choice == (comp.getSize()) + 1) {
                 if (!drawCard) {
-                    System.out.println("Computer " + compNumber + " has drawn a card");
+                    System.out.println(name + " has drawn a card");
                     comp.addCard(deck);
                     drawCard = true;
                 } else {
-                    System.out.println("Computer " + compNumber + " has ended their turn without playing a card");
+                    System.out.println(name + " has ended their turn without playing a card");
                     cardPlayed = 1;
                 }
             } else if (choice == comp.getSize() + 2) {
                 if (!unoCalled) {
-                    System.out.println("Computer " + compNumber + " Calls Uno");
+                    System.out.println(name + " Calls Uno");
                     unoCalled = true;
                 }
             } else if (Card.getCardNumber(comp.getCard(elem)) == 13) {
                 discardPile.addCard(wildComputerColor(13, comp));
-                System.out.println("Computer " + compNumber + " played " + discardPile.getLast());
+                System.out.println(name + " played " + discardPile.getLast());
                 comp.removeCard(elem);
                 cardPlayed = 1;
             } else if (Card.getCardNumber(comp.getCard(elem)) == 14) {
                 discardPile.addCard(wildComputerColor(14, comp));
-                System.out.println("Computer " + compNumber + " played " + discardPile.getLast());
+                System.out.println(name + " played " + discardPile.getLast());
                 draw4 = true;
                 comp.removeCard(elem);
                 cardPlayed = 1;
@@ -479,22 +574,170 @@ public class Uno {
                     else
                         reverse = true;
                 }
-                System.out.println("Computer " + compNumber + " played " + discardPile.getLast());
+                System.out.println(name + " played " + discardPile.getLast());
                 comp.removeCard(elem);
                 cardPlayed = 1;
             }
         } while (cardPlayed == 0);
         if (comp.getSize() == 1 && !unoCalled) {
-            System.out.println("Computer " + compNumber + " did not call uno. + 2");
-        }else if(comp.getSize() == 0){
-            System.out.println("Computer " + compNumber + " won the game!");
-            gameEnded = true;
-            System.exit(0);
+            System.out.println(name + " did not call uno. + 2");
+        } else if (comp.getSize() == 0) {
+            if(fullGame){
+                System.out.println();
+                System.out.println(name + " won the round!");
+                int cWon = compNumber++;
+                scoring(cWon);
+            }else if(!fullGame){
+                System.out.println();
+                System.out.println(name + " won!");
+                Thread.sleep(2000);
+                hardReset();
+                menu();
+            }
         }
         int cPlayer = nextPlayer(currentPlayer, numComp, reverse, skip, draw2, draw4);
         return cPlayer;
     }
-
+    private static void scoring(int won) throws InterruptedException, IOException{
+        if(won == 1){
+            addPlay1(comp1);
+            if(numComp == 2) {
+                addPlay1(comp2);
+            }else if(numComp == 3) {
+                addPlay1(comp2);
+                addPlay1(comp3);
+            }
+        }else if(won == 2){
+            addComp1(play1);
+            if(numComp == 2){
+                addComp1(comp2);
+            }else if(numComp == 3) {
+                addComp1(comp2);
+                addComp1(comp3);
+            }
+        }else if(won == 3){
+            addComp2(play1);
+            addComp2(comp1);
+            if(numComp == 3)
+                addComp2(comp3);
+        }else if(won == 4){
+            addComp3(play1);
+            addComp3(comp1);
+            addComp3(comp2);
+        }
+        if(play1Score >= 500){
+            System.out.println();
+            System.out.println(play1Name + " has won!");
+            Thread.sleep(2000);
+            hardReset();
+            menu();
+        }
+        if(comp1Score >= 500){
+            System.out.println();
+            System.out.println(comp1Name + " has won!");
+            Thread.sleep(2000);
+            hardReset();
+            menu();
+        }
+        if(comp2Score >= 500){
+            System.out.println();
+            System.out.println(comp2Name + " has won!");
+            Thread.sleep(2000);
+            hardReset();
+            menu();
+        }
+        if(comp3Score >= 500){
+            System.out.println();
+            System.out.println(comp3Name + " has won!");
+            Thread.sleep(2000);
+            hardReset();
+            menu();
+        }
+        System.out.println();
+        System.out.println("Scores");
+        System.out.println(play1Name + ": " + play1Score);
+        System.out.println(comp1Name + ": " + comp1Score);
+        if(numComp == 2){
+            System.out.println(comp2Name + ": " + comp2Score);
+        }else if(numComp == 3){
+            System.out.println(comp2Name + ": " + comp2Score);
+            System.out.println(comp3Name + ": " + comp3Score);
+        }
+        Thread.sleep(3000);
+        softReset();
+    }
+    private static void addPlay1(deal play){
+        for(int i = 0; i < play.getSize();i++){
+            int cardNumber = Card.getCardNumber(play.getCard(i));
+            if(cardNumber <= 9){
+                play1Score = play1Score + cardNumber;
+            }else if(cardNumber == 10){
+                play1Score = play1Score + 20;
+            }else if(cardNumber == 11){
+                play1Score = play1Score + 20;
+            }else if(cardNumber == 12){
+                play1Score = play1Score + 20;
+            }else if(cardNumber == 13){
+                play1Score = play1Score + 50;
+            }else if(cardNumber == 14){
+                play1Score = play1Score + 50;
+            }
+        }
+    }
+    private static void addComp1(deal play){
+        for(int i = 0; i < play.getSize();i++){
+            int cardNumber = Card.getCardNumber(play.getCard(i));
+            if(cardNumber <= 9){
+                comp1Score = comp1Score + cardNumber;
+            }else if(cardNumber == 10){
+                comp1Score = comp1Score + 20;
+            }else if(cardNumber == 11){
+                comp1Score = comp1Score + 20;
+            }else if(cardNumber == 12){
+                comp1Score = comp1Score + 20;
+            }else if(cardNumber == 13){
+                comp1Score = comp1Score + 50;
+            }else if(cardNumber == 14){
+                comp1Score = comp1Score + 50;
+            }
+        }
+    }
+    private static void addComp2(deal play){
+        for(int i = 0; i < play.getSize();i++){
+            int cardNumber = Card.getCardNumber(play.getCard(i));
+            if(cardNumber <= 9){
+                comp2Score = comp2Score + cardNumber;
+            }else if(cardNumber == 10){
+                comp2Score = comp2Score + 20;
+            }else if(cardNumber == 11){
+                comp2Score = comp2Score + 20;
+            }else if(cardNumber == 12){
+                comp2Score = comp2Score + 20;
+            }else if(cardNumber == 13){
+                comp2Score = comp2Score + 50;
+            }else if(cardNumber == 14){
+                comp2Score = comp2Score + 50;
+            }
+        }
+    }
+    private static void addComp3(deal play){
+        for(int i = 0; i < play.getSize();i++){
+            int cardNumber = Card.getCardNumber(play.getCard(i));
+            if(cardNumber <= 9){
+                comp3Score = comp3Score + cardNumber;
+            }else if(cardNumber == 10){
+                comp3Score = comp3Score + 20;
+            }else if(cardNumber == 11){
+                comp3Score = comp3Score + 20;
+            }else if(cardNumber == 12){
+                comp3Score = comp3Score + 20;
+            }else if(cardNumber == 13){
+                comp3Score = comp3Score + 50;
+            }else if(cardNumber == 14){
+                comp3Score = comp3Score + 50;
+            }
+        }
+    }
     private static void dTwo(int currentPlayer) {
         if (currentPlayer == 1) {
             for (int i = 0; i < 2; i++)
@@ -515,95 +758,127 @@ public class Uno {
         if (currentPlayer == 1) {
             for (int i = 0; i < 4; i++)
                 play1.addCard(deck);
-        } else if (currentPlayer == 2){
+        } else if (currentPlayer == 2) {
             for (int i = 0; i < 4; i++)
                 comp1.addCard(deck);
-        }else if(currentPlayer ==3){
+        } else if (currentPlayer == 3) {
             for (int i = 0; i < 4; i++)
                 comp2.addCard(deck);
-        }else if(currentPlayer == 4){
+        } else if (currentPlayer == 4) {
             for (int i = 0; i < 4; i++)
                 comp3.addCard(deck);
         }
     }
-    private static int nextPlayer(int currentPlayer, int numComp, boolean reverse, boolean skip, boolean draw2, boolean draw4){
-        if(numComp == 1){
-            if(reverse && skip || !reverse && skip){
 
-            }else{
-                if(currentPlayer == 1)
+    private static int nextPlayer(int currentPlayer, int numComp, boolean reverse, boolean skip, boolean draw2, boolean draw4) {
+        if (numComp == 1) {
+            if (reverse && skip || !reverse && skip) {
+
+            } else {
+                if (currentPlayer == 1)
                     currentPlayer = 2;
-                else if(currentPlayer == 2)
+                else if (currentPlayer == 2)
                     currentPlayer = 1;
             }
-        }else if(numComp == 2){
+        } else if (numComp == 2) {
             int temp = currentPlayer;
-            if(reverse && skip){
+            if (reverse && skip) {
                 System.out.println(temp);
                 temp = temp - 1;
-                if(temp <= 0)
+                if (temp <= 0)
                     temp = 3;
                 currentPlayer = temp;
-            }else if(!reverse & skip){
+            } else if (!reverse & skip) {
                 temp++;
-                if(temp > 3)
+                if (temp > 3)
                     temp = 1;
                 temp++;
-                if(temp > 3)
+                if (temp > 3)
                     temp = 1;
                 currentPlayer = temp;
-            }else if(reverse){
+            } else if (reverse) {
                 temp--;
-                if(temp <= 0)
+                if (temp <= 0)
                     temp = 3;
                 currentPlayer = temp;
-            }else{
+            } else {
                 temp++;
-                if(temp > 3)
+                if (temp > 3)
                     temp = 1;
                 currentPlayer = temp;
             }
-        }else if(numComp ==  3){
+        } else if (numComp == 3) {
             int temp = currentPlayer;
-            if(reverse && skip || !reverse && skip){
+            if (reverse && skip || !reverse && skip) {
                 temp++;
-                if(temp > 4)
+                if (temp > 4)
                     temp = 1;
                 temp++;
-                if(temp > 4)
-                    temp = 1;
-                currentPlayer = temp;
-            }else if(!reverse){
-                temp++;
-                if(temp > 4)
+                if (temp > 4)
                     temp = 1;
                 currentPlayer = temp;
-            }else{
+            } else if (!reverse) {
+                temp++;
+                if (temp > 4)
+                    temp = 1;
+                currentPlayer = temp;
+            } else {
                 temp--;
-                if(temp <= 0)
+                if (temp <= 0)
                     temp = 4;
                 currentPlayer = temp;
             }
         }
-        if(draw2){
+        if (draw2) {
             dTwo(currentPlayer);
-        }else if(draw4){
+        } else if (draw4) {
             dFour(currentPlayer);
         }
         return currentPlayer;
     }
-    private static int getCardNumber(){
+
+    private static int getCardNumber() {
         int choice = 0;
-        do{
-            try{
+        do {
+            try {
                 System.out.print("Which card do you want to play: ");
                 choice = si.nextInt();
                 si.nextLine();
-            }catch(InputMismatchException e){
+            } catch (InputMismatchException e) {
                 System.out.println("Invalid Input");
                 si.nextLine();
             }
-        }while(choice == 0);
+        } while (choice == 0);
         return choice;
+    }
+
+    private static void softReset() throws InterruptedException, IOException{
+        play1 = new deal();
+        comp1 = new deal();
+        comp2 = new deal();
+        comp3 = new deal();
+        deck = new deck();
+        discardPile = new deal();
+        reverse = false;
+        play();
+    }
+    private static void hardReset() throws InterruptedException, IOException{
+        play1 = new deal();
+        comp1 = new deal();
+        comp2 = new deal();
+        comp3 = new deal();
+        deck = new deck();
+        discardPile = new deal();
+        reverse = false;
+        fullGame = false;
+        numComp = 0;
+        play1Score = 0;
+        comp1Score = 0;
+        comp2Score = 0;
+        comp3Score = 0;
+        play1Name = null;
+        comp1Name = null;
+        comp2Name = null;
+        comp3Name = null;
     }
 }
