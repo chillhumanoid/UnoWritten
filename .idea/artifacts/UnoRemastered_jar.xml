@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="UnoRemastered:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/UnoRemastered_jar</output-path>
+    <root id="archive" name="UnoRemastered.jar">
+      <element id="module-output" name="UnoRemastered" />
+    </root>
+  </artifact>
+</component>
