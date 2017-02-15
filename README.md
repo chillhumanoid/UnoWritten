@@ -1,4 +1,12 @@
 #Version History(newest first)
+##1.1.1.2
+fixed a lot of bugs with the ability to set names. shouldn't do duplicate names now. will add more names later. 
+##1.1.1.0
+Added the ability to set names
+##1.1.0.0
+Another update! 
+This update comes with a rewrite of all the code, thus the new github repo
+it also comes with the ability to play a quick game, or a normal game with scoring
 ##1.0.2.0
 Second update!
 This update makes it so that it seems more like the computer is thinking. 
