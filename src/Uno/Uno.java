@@ -34,7 +34,7 @@ public class Uno {
         menu();
     }
     private static void play() throws InterruptedException, IOException{
-       // new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
+        new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
         deck.shuffleDeck();
         currentPlayer = 1;
         skip = false;
@@ -293,7 +293,7 @@ public class Uno {
         int choice = 0;
         new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
         try {
-            System.out.println("Welcome to Uno v1.1.1.2");
+            System.out.println("Welcome to Uno v1.1.1.3");
             System.out.println("1. Play");
             System.out.println("2. Exit");
             choice = si.nextInt();
@@ -658,7 +658,7 @@ public class Uno {
         if(comp3Score >= 500){
             System.out.println();
             System.out.println(comp3Name + " has won!");
-            Thread.sleep(2000);
+            Thread.sleep(2500);
             hardReset();
             menu();
         }
@@ -872,6 +872,8 @@ public class Uno {
         deck = new deck();
         discardPile = new deal();
         reverse = false;
+        skip = false;
+        currentPlayer = 0;
         play();
     }
     private static void hardReset() throws InterruptedException, IOException{
@@ -882,6 +884,8 @@ public class Uno {
         deck = new deck();
         discardPile = new deal();
         reverse = false;
+        currentPlayer = 0;
+        skip = false;
         fullGame = false;
         numComp = 0;
         play1Score = 0;
