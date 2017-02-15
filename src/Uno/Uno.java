@@ -15,8 +15,10 @@ public class Uno {
     private static Scanner s = new Scanner(System.in);
     private static Scanner si = new Scanner(System.in);
     private static deal discardPile = new deal();
+    private static int currentPlayer = 0;
     private static boolean reverse = false;
     private static boolean fullGame = false;
+    private static boolean skip = false;
     private static int numComp = 0;
     private static int play1Score = 0;
     private static int comp1Score = 0;
@@ -26,16 +28,16 @@ public class Uno {
     private static String comp1Name = null;
     private static String comp2Name = null;
     private static String comp3Name = null;
-    private static String[] compNames = new String[]{"Billy", "Charles","Jillian","Frank","Michelle","Angela","Rachel","Phil"};
+    private static String[] compNames = new String[]{"Billy", "Charles","Jillian","Frank","Michelle","Angela","Rachel","Phil","James","John","Mary","Patricia","Robert","Michael","Linda","Barbara"};
 
     public static void main(String[] args) throws InterruptedException, IOException {
         menu();
     }
     private static void play() throws InterruptedException, IOException{
-        new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
+       // new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
         deck.shuffleDeck();
-        int currentPlayer = 1;
-        boolean skip = false;
+        currentPlayer = 1;
+        skip = false;
         boolean draw2 = false;
         boolean draw4 = false;
         boolean uno = false;
@@ -127,6 +129,9 @@ public class Uno {
                         }
                         play1.removeCard(elem);
                         cardPlayed = 1;
+                    }else{
+                        System.out.println();
+                        System.out.println("Please select a playable card.");
                     }
                 } while (cardPlayed == 0);
                 if (play1.getSize() == 1 && !unoCalled) {
@@ -152,26 +157,26 @@ public class Uno {
                         menu();
                     }
                 }
-                currentPlayer = nextPlayer(currentPlayer, numComp, reverse, skip, draw2, draw4);
+                currentPlayer = nextPlayer(draw2, draw4);
                 checkDraw(deck, discardPile);
                 System.out.println();
                 break;
             }
             while (currentPlayer == 2) {
                 int compNumber = 1;
-                currentPlayer = computerPlay(comp1, skip, draw2, draw4, uno, compNumber, currentPlayer, numComp);
+                currentPlayer = computerPlay(comp1, draw2, draw4, uno, compNumber, currentPlayer, numComp);
                 checkDraw(deck, discardPile);
                 break;
             }
             while (currentPlayer == 3) {
                 int compNumber = 2;
-                currentPlayer = computerPlay(comp2, skip, draw2, draw4, uno, compNumber, currentPlayer, numComp);
+                currentPlayer = computerPlay(comp2, draw2, draw4, uno, compNumber, currentPlayer, numComp);
                 checkDraw(deck, discardPile);
                 break;
             }
             while (currentPlayer == 4) {
                 int compNumber = 3;
-                currentPlayer = computerPlay(comp3, skip, draw2, draw4, uno, compNumber, currentPlayer, numComp);
+                currentPlayer = computerPlay(comp3, draw2, draw4, uno, compNumber, currentPlayer, numComp);
                 checkDraw(deck, discardPile);
                 break;
             }
@@ -186,13 +191,13 @@ public class Uno {
     }
     private static void getNames() throws IOException, InterruptedException{
         Random rn = new Random();
-        int range = 7 - 0 + 1;
+        int range = 15 - 0 + 1;
         int name =  0;
         int temp = 0;
         int temp2 = 0;
         int temp3 = 0;
         System.out.println();
-        System.out.println("Please your player name: ");
+        System.out.println("Please enter your player name: ");
         play1Name = s.nextLine();
         while(temp == name){
             temp = rn.nextInt(range);
@@ -234,7 +239,7 @@ public class Uno {
     }
 
     private static boolean checkUno(deal play) {
-        boolean uno = false;
+        boolean uno;
         if (play.getSize() == 2)
             uno = true;
         else
@@ -515,21 +520,26 @@ public class Uno {
         return new Card(cardNumber, cColor);
     }
 
-    private static int computerPlay(deal comp, boolean skip, boolean draw2, boolean draw4, boolean uno, int compNumber, int currentPlayer, int numComp) throws InterruptedException, IOException {
+    private static int computerPlay(deal comp, boolean draw2, boolean draw4, boolean uno, int compNumber, int currentPlayer, int numComp) throws InterruptedException, IOException {
         skip = false;
         draw2 = false;
         draw4 = false;
         String name = null;
         int choice;
+        int cWon = 0;
         int cardPlayed = 0;
         boolean drawCard = false;
         boolean unoCalled = false;
-        if(compNumber == 1)
+        if(compNumber == 1) {
             name = comp1Name;
-        else if(compNumber == 2)
+            cWon = 2;
+        }else if(compNumber == 2) {
             name = comp2Name;
-        else if(compNumber == 3)
+            cWon = 3;
+        }else if(compNumber == 3) {
             name = comp3Name;
+            cWon = 4;
+        }
         do {
             sleep(2000);
             uno = checkUno(comp);
@@ -585,7 +595,6 @@ public class Uno {
             if(fullGame){
                 System.out.println();
                 System.out.println(name + " won the round!");
-                int cWon = compNumber++;
                 scoring(cWon);
             }else if(!fullGame){
                 System.out.println();
@@ -595,7 +604,7 @@ public class Uno {
                 menu();
             }
         }
-        int cPlayer = nextPlayer(currentPlayer, numComp, reverse, skip, draw2, draw4);
+        int cPlayer = nextPlayer(draw2, draw4);
         return cPlayer;
     }
     private static void scoring(int won) throws InterruptedException, IOException{
@@ -770,7 +779,7 @@ public class Uno {
         }
     }
 
-    private static int nextPlayer(int currentPlayer, int numComp, boolean reverse, boolean skip, boolean draw2, boolean draw4) {
+    private static int nextPlayer(boolean draw2, boolean draw4) {
         if (numComp == 1) {
             if (reverse && skip || !reverse && skip) {
 
@@ -787,8 +796,11 @@ public class Uno {
                 temp = temp - 1;
                 if (temp <= 0)
                     temp = 3;
+                temp = temp - 1;
+                if(temp <= 0)
+                    temp = 3;
                 currentPlayer = temp;
-            } else if (!reverse & skip) {
+            } else if (!reverse && skip) {
                 temp++;
                 if (temp > 3)
                     temp = 1;
