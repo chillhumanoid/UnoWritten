@@ -1,4 +1,10 @@
 #Version History(newest first)
+##1.2.0.0
+created user profiles! This keeps track of 13 statistics of your playtime: Full games played, full games won, hands played, amount of times uno called, hands won, each special card(draw 2,4, wild, reverse, skip), cards drawn(via draw card), Cards forced drawn(via penalties) and the amount of penalties. Saved automatically constantly, so even if you close the game midway through your stats save(your game however, will not). I've also split up the menu so there are 4 seperate screens. The main menu has select user and exit, the select user menu allows you to select a user or create a new one. the user menu has play, stats, select a different user(or back really) and delete user(will have you confirm). 
+
+From the stat page you can also reset your stats. 
+
+Look out for my next project: Cribbage.
 ##1.1.1.3
 Fixed some final things. Skip works all the time, as do reverse's. Added some more names. Fixed some spelling errors. 
 made it easier to tell you selected an unplayable card. Everything from here will be small updates. will start working on another project soon. i'll keep you all updated. 
