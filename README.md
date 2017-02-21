@@ -1,4 +1,7 @@
 #Version History(newest first)
+##1.1.1.3
+Fixed some final things. Skip works all the time, as do reverse's. Added some more names. Fixed some spelling errors. 
+made it easier to tell you selected an unplayable card. Everything from here will be small updates. will start working on another project soon. i'll keep you all updated. 
 ##1.1.1.2
 fixed a lot of bugs with the ability to set names. shouldn't do duplicate names now. will add more names later. 
 ##1.1.1.0
