@@ -309,7 +309,7 @@ public class Uno {
         int choice = 0;
         new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
         try {
-            System.out.println("Welcome to Uno v1.1.1.3");
+            System.out.println("Welcome to Uno v2.0.0.0");
             System.out.println("1. Select User");
             System.out.println("2. Exit");
             choice = si.nextInt();
@@ -411,7 +411,7 @@ public class Uno {
         String sChoice = null;
         new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
         try {
-            System.out.println("Current User: " + user.getUserName());
+            System.out.println("Hello " + user.getUserName());
             System.out.println("1. Play");
             System.out.println("2. Stats");
             System.out.println("3. Select a Different User");
