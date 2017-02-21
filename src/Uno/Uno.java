@@ -482,21 +482,21 @@ public class Uno {
         System.out.println("Full Games Played: " + user.getNormGamesPlayed());
         System.out.println("Full Games Won: " + user.getNormGamesWon());
         System.out.println("Hands Played: " + user.getHandsPlayed());
-        System.out.println("Uno Called: " + user.getUnoCalled());
+        System.out.println("Unos Called: " + user.getUnoCalled());
         System.out.println("Hands Won: " + user.getHandsWon());
-        System.out.println("Draw 4 Played: " + user.getDraw4Played());
-        System.out.println("Draw 2 Played: " + user.getDraw2Played());
-        System.out.println("Wild Played: " + user.getWildPlayed());
-        System.out.println("Reverse Played: " + user.getReversePlayed());
-        System.out.println("Skip Played: " + user.getSkipPlayed());
+        System.out.println("Draw 4s Played: " + user.getDraw4Played());
+        System.out.println("Draw 2s Played: " + user.getDraw2Played());
+        System.out.println("Wilds Played: " + user.getWildPlayed());
+        System.out.println("Reverses Played: " + user.getReversePlayed());
+        System.out.println("Skips Played: " + user.getSkipPlayed());
         System.out.println("Cards Drawn: " + user.getCardsDrawn());
-        System.out.println("Cards Forced Drawn(Draw 2/4,Errors): " + user.getCardsForcedDrawn());
-        System.out.println("Errors Made(not calling uno, etc.): " + user.getErrorsMade());
+        System.out.println("Cards Forced Drawn(Draw 2/4 & Penalties): " + user.getCardsForcedDrawn());
+        System.out.println("Penalties: " + user.getErrorsMade());
         System.out.println();
         int choice = 0;
         String sChoice = null;
         try {
-            System.out.println("1. Back     2. Reset ");
+            System.out.println("1. Back          2. Reset ");
             choice = si.nextInt();
             si.nextLine();
         } catch (InputMismatchException e) {
