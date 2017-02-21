@@ -4,6 +4,7 @@ created user profiles! This keeps track of 13 statistics of your playtime: Full 
 
 From the stat page you can also reset your stats. 
 
+Please do not move the Users folder from the Uno folder, or change anything in either txt file.
 Look out for my next project: Cribbage.
 ##1.1.1.3
 Fixed some final things. Skip works all the time, as do reverse's. Added some more names. Fixed some spelling errors. 
