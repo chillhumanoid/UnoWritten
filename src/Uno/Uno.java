@@ -1,5 +1,12 @@
 package Uno;
 
+import java.io.File;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.util.Random;
 import java.io.IOException;
 import static java.lang.Thread.sleep;
@@ -24,14 +31,15 @@ public class Uno {
     private static int comp1Score = 0;
     private static int comp2Score = 0;
     private static int comp3Score = 0;
-    private static String play1Name = null;
     private static String comp1Name = null;
     private static String comp2Name = null;
     private static String comp3Name = null;
     private static String[] compNames = new String[]{"Billy", "Charles","Jillian","Frank","Michelle","Angela","Rachel","Phil","James","John","Mary","Patricia","Robert","Michael","Linda","Barbara"};
+    private static  String uName = null;
+    private static Users user = new Users(uName);
 
     public static void main(String[] args) throws InterruptedException, IOException {
-        menu();
+        mainMenu();
     }
     private static void play() throws InterruptedException, IOException{
         new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
@@ -94,13 +102,15 @@ public class Uno {
                         if (!drawCard) {
                             play1.addCard(deck);
                             drawCard = true;
+                            user.addCardsDrawn();
                             cardPlayed = 0;
                         } else if (drawCard)
                             cardPlayed = 1;
                     } else if (choice == (play1.getSize() + 2)) {
                         if (!unoCalled) {
                             System.out.println();
-                            System.out.println(play1Name + " Calls Uno");
+                            System.out.println(uName + " Calls Uno");
+                            user.addUnoCalled();
                             unoCalled = true;
                         } else if (unoCalled || !uno) {
                             System.out.println();
@@ -109,23 +119,28 @@ public class Uno {
                     } else if (Card.getCardColor(play1.getCard(elem)) == 'a' && Card.getCardNumber(play1.getCard(elem)) == 13) {
                         discardPile.addCard(wildColor(13));
                         play1.removeCard(elem);
+                        user.addWildPlayed();
                         cardPlayed = 1;
                     } else if (Card.getCardColor(play1.getCard(elem)) == 'a' && Card.getCardNumber(play1.getCard(elem)) == 14) {
                         discardPile.addCard(wildColor(14));
                         play1.removeCard(elem);
                         draw4 = true;
+                        user.addDraw4Played();
                         cardPlayed = 1;
                     } else if (Card.getCardColor(play1.getCard(elem)) == Card.getCardColor(discardPile.getLast()) || Card.getCardNumber(play1.getCard(elem)) == Card.getCardNumber(discardPile.getLast())) {
                         discardPile.addCard(play1.getCard(elem));
-                        if (Card.getCardNumber(play1.getCard(elem)) == 10)
+                        if (Card.getCardNumber(play1.getCard(elem)) == 10) {
                             skip = true;
-                        else if (Card.getCardNumber(play1.getCard(elem)) == 11)
+                            user.addSkipPlayed();
+                        }else if (Card.getCardNumber(play1.getCard(elem)) == 11) {
                             draw2 = true;
-                        else if (Card.getCardNumber(play1.getCard(elem)) == 12) {
+                            user.addDraw2Played();
+                        }else if (Card.getCardNumber(play1.getCard(elem)) == 12) {
                             if (reverse)
                                 reverse = false;
                             else if (!reverse)
                                 reverse = true;
+                            user.addReversePlayed();
                         }
                         play1.removeCard(elem);
                         cardPlayed = 1;
@@ -135,26 +150,35 @@ public class Uno {
                     }
                 } while (cardPlayed == 0);
                 if (play1.getSize() == 1 && !unoCalled) {
-                    System.out.println(play1Name +  " did not call uno. +2");
+                    System.out.println(uName +  " did not call uno. +2");
+                    user.addErrorsMade();
+                    user.addCardForcedDrawn();
+                    user.addCardForcedDrawn();
                     play1.addCard(deck);
                     play1.addCard(deck);
                 }
                 if (play1.getSize() > 1 && unoCalled) {
-                    System.out.println(play1Name + " falsely called uno. +2");
+                    System.out.println(uName + " falsely called uno. +2");
+                    user.addErrorsMade();
+                    user.addCardForcedDrawn();
+                    user.addCardForcedDrawn();
                     play1.addCard(deck);
                     play1.addCard(deck);
                 }
                 if (play1.getSize() == 0) {
                     if(fullGame){
                         System.out.println();
-                        System.out.println(play1Name + " won the round");
+                        System.out.println(uName + " won the round");
+                        user.addHandsWon();
                         scoring(1);
                     }else if(!fullGame) {
                         System.out.println();
-                        System.out.println(play1Name + " won");
+                        System.out.println(uName + " won");
+                        user.addHandsWon();
+                        user.writeToFile();
                         Thread.sleep(2000);
                         hardReset();
-                        menu();
+                        userMenu();
                     }
                 }
                 currentPlayer = nextPlayer(draw2, draw4);
@@ -196,9 +220,6 @@ public class Uno {
         int temp = 0;
         int temp2 = 0;
         int temp3 = 0;
-        System.out.println();
-        System.out.println("Please enter your player name: ");
-        play1Name = s.nextLine();
         while(temp == name){
             temp = rn.nextInt(range);
         }
@@ -233,11 +254,9 @@ public class Uno {
         else if (unoCalled)
             System.out.println("Uno Called");
     }
-
     private static void printDiscard() {
         System.out.println("Discard Pile: " + discardPile.getLast());
     }
-
     private static boolean checkUno(deal play) {
         boolean uno;
         if (play.getSize() == 2)
@@ -246,7 +265,6 @@ public class Uno {
             uno = false;
         return uno;
     }
-
     private static Card wildColor(int cardNumber) {
         System.out.println("What color do you want the deck to be?: ");
         String input = s.nextLine();
@@ -266,7 +284,6 @@ public class Uno {
         }
         return new Card(cardNumber, color);
     }
-
     private static void checkDraw(deck deck, deal discardPile) {
         if (deck.getSize() <= 4) {
             System.out.println();
@@ -288,13 +305,12 @@ public class Uno {
             discardPile.addCard(deck);
         }
     }
-
-    private static void menu() throws IOException, InterruptedException {
+    private static void mainMenu() throws IOException, InterruptedException {
         int choice = 0;
         new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
         try {
             System.out.println("Welcome to Uno v1.1.1.3");
-            System.out.println("1. Play");
+            System.out.println("1. Select User");
             System.out.println("2. Exit");
             choice = si.nextInt();
             si.nextLine();
@@ -303,31 +319,231 @@ public class Uno {
             si.nextLine();
         }
         if (choice == 1) {
-            new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
-            try {
-                System.out.println("Game Modes");
-                System.out.println("1. Normal(Score based, multiple games)");
-                System.out.println("2. Quick(one game, no scores)");
-                System.out.println("3. Back");
-                choice = si.nextInt();
-                si.nextLine();
-            } catch (InputMismatchException e) {
-                System.out.println("Invalid Input");
-                si.nextLine();
-            }
-            if (choice == 1) {
-                fullGame = true;
-                compNum();
-            } else if (choice == 2) {
-                fullGame = false;
-                compNum();
-            } else if (choice == 3) {
-                menu();
-            } else if (choice == 2) {
+            selectUserMenu();
+        } else if (choice == 2) {
                 System.out.println("Goodbye!");
                 System.exit(0);
+        }else{
+            System.out.println("Please Select a Valid Option");
+            Thread.sleep(2000);
+            mainMenu();
+        }
+    }
+    private static void selectUserMenu() throws IOException, InterruptedException{
+        int choice = 0;
+        BufferedReader reader = new BufferedReader(new FileReader("Users/Users.txt"));
+        String l1 = reader.readLine();
+        String l2 = reader.readLine();
+        String l3 = reader.readLine();
+        String full = null;
+        reader.close();
+        new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
+        try {
+            System.out.println("Select User");
+            System.out.println("1. " + l1);
+            System.out.println("2. " + l2);
+            System.out.println("3. " + l3);
+            System.out.println("4. Main Menu");
+            choice = si.nextInt();
+            si.nextLine();
+        } catch (InputMismatchException e) {
+            System.out.println("Invalid Input");
+            si.nextLine();
+        }
+        if (choice == 1 && "New User1".equals(l1)) {
+            System.out.print("Enter New Username: ");
+            uName = s.nextLine();
+            l1 = uName;
+            writeUsers(l1,l2,l3);
+            user = new Users(uName);
+            user.newUser();
+            userMenu();
+        } else if (choice == 2  && "New User2".equals(l2)) {
+            System.out.print("Enter New Username: ");
+            uName = s.nextLine();
+            l2 = uName;
+            writeUsers(l1,l2,l3);
+            user = new Users(uName);
+            user.newUser();
+            userMenu();
+        } else if (choice == 3 && "New User3".equals(l3)) {
+            System.out.print("Enter New Username: ");
+            uName = s.nextLine();
+            l3 = uName;
+            writeUsers(l1,l2,l3);
+            user = new Users(uName);
+            user.newUser();
+            userMenu();
+        } else if(choice == 1){
+            uName = l1;
+            user = new Users(uName);
+            user.oldUser();
+            userMenu();
+        } else if(choice == 2){
+            uName = l2;
+            user = new Users(uName);
+            user.oldUser();
+            userMenu();
+        }else if(choice == 3) {
+            uName = l3;
+            user = new Users(uName);
+            user.oldUser();
+            userMenu();
+        }else if(choice == 4){
+            mainMenu();
+        }else{
+            System.out.println("Please Select a Valid Option");
+            Thread.sleep(2000);
+            selectUserMenu();
+        }
+    }
+    private static void writeUsers(String l1, String l2, String l3) throws IOException{
+        BufferedWriter writer = new BufferedWriter(new FileWriter("Users/Users.txt"));
+        writer.write(l1);
+        writer.newLine();
+        writer.write(l2);
+        writer.newLine();
+        writer.write(l3);
+        writer.close();
+    }
+    private static void userMenu() throws IOException, InterruptedException{
+        int choice = 0;
+        String sChoice = null;
+        new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
+        try {
+            System.out.println("Current User: " + user.getUserName());
+            System.out.println("1. Play");
+            System.out.println("2. Stats");
+            System.out.println("3. Select a Different User");
+            System.out.println("4. Delete User");
+            choice = si.nextInt();
+            si.nextLine();
+        } catch (InputMismatchException e) {
+            System.out.println("Invalid Input");
+            si.nextLine();
+        }
+        if (choice == 1) {
+            playMenu();
+        } else if (choice == 2) {
+            stats();
+        } else if (choice == 3) {
+            selectUserMenu();
+        }else if(choice == 4){
+            System.out.println();
+            System.out.print("This cannot be undone. Are you sure you want to delete "+user.getUserName()+"?(y/n): ");
+            sChoice = s.nextLine();
+            if("y".equalsIgnoreCase(sChoice)){
+                deleteUser();
+            }else if("n".equalsIgnoreCase(sChoice)){
+                userMenu();
+            }else{
+                System.out.println("Not a valid choice. Not deleting User");
+                Thread.sleep(2000);
+                userMenu();
+            }
+        }else{
+            System.out.println("Please Select a Valid Option");
+            Thread.sleep(2000);
+            userMenu();
+        }
+    }
+    private static void playMenu() throws IOException, InterruptedException{
+        int choice = 0;
+        new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
+        try {
+            System.out.println("1. Normal(Score based, multiple games)");
+            System.out.println("2. Quick(one game, no scores)");
+            System.out.println("3. User Menu");
+            choice = si.nextInt();
+            si.nextLine();
+        } catch (InputMismatchException e) {
+            System.out.println("Invalid Input");
+            si.nextLine();
+        }
+        if (choice == 1) {
+            fullGame = true;
+            user.addNormGamePlayed();
+            user.addHandPlayed();
+            compNum();
+        } else if (choice == 2) {
+            fullGame = false;
+            user.addHandPlayed();
+            compNum();
+        } else if (choice == 3) {
+            userMenu();
+        }else{
+            System.out.println("Please Select a Valid Option");
+            Thread.sleep(2000);
+            playMenu();
+        }
+    }
+    private static void stats() throws IOException, InterruptedException{
+        new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
+        System.out.println("Full Games Played: " + user.getNormGamesPlayed());
+        System.out.println("Full Games Won: " + user.getNormGamesWon());
+        System.out.println("Hands Played: " + user.getHandsPlayed());
+        System.out.println("Uno Called: " + user.getUnoCalled());
+        System.out.println("Hands Won: " + user.getHandsWon());
+        System.out.println("Draw 4 Played: " + user.getDraw4Played());
+        System.out.println("Draw 2 Played: " + user.getDraw2Played());
+        System.out.println("Wild Played: " + user.getWildPlayed());
+        System.out.println("Reverse Played: " + user.getReversePlayed());
+        System.out.println("Skip Played: " + user.getSkipPlayed());
+        System.out.println("Cards Drawn: " + user.getCardsDrawn());
+        System.out.println("Cards Forced Drawn(Draw 2/4,Errors): " + user.getCardsForcedDrawn());
+        System.out.println("Errors Made(not calling uno, etc.): " + user.getErrorsMade());
+        System.out.println();
+        int choice = 0;
+        String sChoice = null;
+        try {
+            System.out.println("1. Back     2. Reset ");
+            choice = si.nextInt();
+            si.nextLine();
+        } catch (InputMismatchException e) {
+            System.out.println("Invalid Input");
+            si.nextLine();
+        }
+        if(choice == 1){
+            userMenu();
+        }else if(choice == 2){
+            System.out.println();
+            System.out.print("This cannot be undone. Are you sure you want to reset your stats?(y/n): ");
+            sChoice = s.nextLine();
+            if("y".equalsIgnoreCase(sChoice)){
+                user.reset();
+                userMenu();
+            }else if("n".equalsIgnoreCase(sChoice)){
+                stats();
+            }else{
+                System.out.println("Not a valid choice. Leaving stats as is.");
+                Thread.sleep(2000);
+                stats();
             }
         }
+    }
+    private static void deleteUser() throws InterruptedException, IOException{
+        BufferedReader reader = new BufferedReader(new FileReader("Users/Users.txt"));
+        String l1 = reader.readLine();
+        String l2 = reader.readLine();
+        String l3 = reader.readLine();
+        reader.close();
+        if(uName.equals(l1)){
+            l1 = "New User1";
+        }else if(uName.equals(l2)){
+            l2 = "New User2";
+        }else if(uName.equals(l3)){
+            l3 = "New User3";
+        }
+        BufferedWriter writer = new BufferedWriter(new FileWriter("Users/Users.txt"));
+        writer.write(l1);
+        writer.newLine();
+        writer.write(l2);
+        writer.newLine();
+        writer.write(l3);
+        writer.close();
+        File f = new File("Users/" +uName+".txt");
+        f.delete();
+        mainMenu();
     }
     private static void compNum() throws InterruptedException, IOException{
         String[] args = {};
@@ -347,7 +563,6 @@ public class Uno {
             compNum();
         }
     }
-
     private static int getComputerChoice(Card dCard, deal Computer, boolean unoCalled) {
         int choice;
         boolean hWild, hSkip, hReverse, hDTwo, hDFour, hPlayable;
@@ -382,7 +597,6 @@ public class Uno {
         }
         return choice;
     }
-
     private static int findWild(deal Computer) {
         int elem = 0;
         for (int i = 0; i < Computer.getSize(); i++) {
@@ -391,7 +605,6 @@ public class Uno {
         }
         return elem;
     }
-
     private static int findDTwo(Card dCard, deal Computer) {
         int elem = 0;
         for (int i = 0; i < Computer.getSize(); i++) {
@@ -400,7 +613,6 @@ public class Uno {
         }
         return elem;
     }
-
     private static int findSkip(Card dCard, deal Computer) {
         int elem = 0;
         for (int i = 0; i < Computer.getSize(); i++) {
@@ -409,7 +621,6 @@ public class Uno {
         }
         return elem;
     }
-
     private static int findReverse(Card dCard, deal Computer) {
         int elem = 0;
         for (int i = 0; i < Computer.getSize(); i++) {
@@ -418,7 +629,6 @@ public class Uno {
         }
         return elem;
     }
-
     private static int findDrawFour(deal Computer) {
         int elem = 0;
         for (int i = 0; i < Computer.getSize(); i++) {
@@ -427,7 +637,6 @@ public class Uno {
         }
         return elem;
     }
-
     private static int findPlayable(Card dCard, deal Computer) {
         int elem = 0;
         for (int i = 0; i < Computer.getSize(); i++) {
@@ -436,7 +645,6 @@ public class Uno {
         }
         return elem;
     }
-
     private static boolean hasWild(deal Computer) {
         boolean hWild = false;
         for (int i = 0; i < Computer.getSize(); i++) {
@@ -445,7 +653,6 @@ public class Uno {
         }
         return hWild;
     }
-
     private static boolean hasSkip(Card dCard, deal Computer) {
         boolean hSkip = false;
         for (int i = 0; i < Computer.getSize(); i++) {
@@ -454,7 +661,6 @@ public class Uno {
         }
         return hSkip;
     }
-
     private static boolean hasReverse(Card dCard, deal Computer) {
         boolean hReverse = false;
         for (int i = 0; i < Computer.getSize(); i++) {
@@ -463,7 +669,6 @@ public class Uno {
         }
         return hReverse;
     }
-
     private static boolean hasDrawTwo(Card dCard, deal Computer) {
         boolean hDTwo = false;
         for (int i = 0; i < Computer.getSize(); i++) {
@@ -472,7 +677,6 @@ public class Uno {
         }
         return hDTwo;
     }
-
     private static boolean hasDrawFour(deal Computer) {
         boolean hDFour = false;
         for (int i = 0; i < Computer.getSize(); i++) {
@@ -481,7 +685,6 @@ public class Uno {
         }
         return hDFour;
     }
-
     private static boolean hasPlayable(Card dCard, deal Computer) {
         boolean hPlayable = false;
         for (int i = 0; i < Computer.getSize(); i++) {
@@ -490,7 +693,6 @@ public class Uno {
         }
         return hPlayable;
     }
-
     private static Card wildComputerColor(int cardNumber, deal Computer) {
         int blue = 0;
         int red = 0;
@@ -519,7 +721,6 @@ public class Uno {
             cColor = 'r';
         return new Card(cardNumber, cColor);
     }
-
     private static int computerPlay(deal comp, boolean draw2, boolean draw4, boolean uno, int compNumber, int currentPlayer, int numComp) throws InterruptedException, IOException {
         skip = false;
         draw2 = false;
@@ -601,7 +802,7 @@ public class Uno {
                 System.out.println(name + " won!");
                 Thread.sleep(2000);
                 hardReset();
-                menu();
+                userMenu();
             }
         }
         int cPlayer = nextPlayer(draw2, draw4);
@@ -636,35 +837,37 @@ public class Uno {
         }
         if(play1Score >= 500){
             System.out.println();
-            System.out.println(play1Name + " has won!");
+            System.out.println(uName + " has won!");
+            user.addNormGameWon();
+            user.writeToFile();
             Thread.sleep(2000);
             hardReset();
-            menu();
+            userMenu();
         }
         if(comp1Score >= 500){
             System.out.println();
             System.out.println(comp1Name + " has won!");
             Thread.sleep(2000);
             hardReset();
-            menu();
+            userMenu();
         }
         if(comp2Score >= 500){
             System.out.println();
             System.out.println(comp2Name + " has won!");
             Thread.sleep(2000);
             hardReset();
-            menu();
+            userMenu();
         }
         if(comp3Score >= 500){
             System.out.println();
             System.out.println(comp3Name + " has won!");
-            Thread.sleep(2500);
+            Thread.sleep(2000);
             hardReset();
-            menu();
+            userMenu();
         }
         System.out.println();
         System.out.println("Scores");
-        System.out.println(play1Name + ": " + play1Score);
+        System.out.println(uName + ": " + play1Score);
         System.out.println(comp1Name + ": " + comp1Score);
         if(numComp == 2){
             System.out.println(comp2Name + ": " + comp2Score);
@@ -673,6 +876,7 @@ public class Uno {
             System.out.println(comp3Name + ": " + comp3Score);
         }
         Thread.sleep(3000);
+        user.addHandPlayed();
         softReset();
     }
     private static void addPlay1(deal play){
@@ -747,10 +951,12 @@ public class Uno {
             }
         }
     }
-    private static void dTwo(int currentPlayer) {
+    private static void dTwo(int currentPlayer) throws IOException{
         if (currentPlayer == 1) {
-            for (int i = 0; i < 2; i++)
+            for (int i = 0; i < 2; i++) {
                 play1.addCard(deck);
+                user.addCardForcedDrawn();
+            }
         } else if (currentPlayer == 2) {
             for (int i = 0; i < 2; i++)
                 comp1.addCard(deck);
@@ -762,11 +968,12 @@ public class Uno {
                 comp3.addCard(deck);
         }
     }
-
-    private static void dFour(int currentPlayer) {
+    private static void dFour(int currentPlayer)throws IOException {
         if (currentPlayer == 1) {
-            for (int i = 0; i < 4; i++)
+            for (int i = 0; i < 4; i++) {
                 play1.addCard(deck);
+                user.addCardForcedDrawn();
+            }
         } else if (currentPlayer == 2) {
             for (int i = 0; i < 4; i++)
                 comp1.addCard(deck);
@@ -778,8 +985,7 @@ public class Uno {
                 comp3.addCard(deck);
         }
     }
-
-    private static int nextPlayer(boolean draw2, boolean draw4) {
+    private static int nextPlayer(boolean draw2, boolean draw4) throws IOException {
         if (numComp == 1) {
             if (reverse && skip || !reverse && skip) {
 
@@ -848,7 +1054,6 @@ public class Uno {
         }
         return currentPlayer;
     }
-
     private static int getCardNumber() {
         int choice = 0;
         do {
@@ -863,8 +1068,8 @@ public class Uno {
         } while (choice == 0);
         return choice;
     }
-
     private static void softReset() throws InterruptedException, IOException{
+        new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
         play1 = new deal();
         comp1 = new deal();
         comp2 = new deal();
@@ -877,6 +1082,7 @@ public class Uno {
         play();
     }
     private static void hardReset() throws InterruptedException, IOException{
+        new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
         play1 = new deal();
         comp1 = new deal();
         comp2 = new deal();
@@ -892,7 +1098,6 @@ public class Uno {
         comp1Score = 0;
         comp2Score = 0;
         comp3Score = 0;
-        play1Name = null;
         comp1Name = null;
         comp2Name = null;
         comp3Name = null;
