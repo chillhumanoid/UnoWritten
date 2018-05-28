@@ -453,6 +453,7 @@ public class Uno {
         try {
             System.out.println("1. Normal(Score based, multiple games)");
             System.out.println("2. Quick(one game, no scores)");
+            System.out.println("3. Multiplayer(beta)");
             System.out.println("3. User Menu");
             choice = si.nextInt();
             si.nextLine();
